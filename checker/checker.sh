@@ -156,10 +156,36 @@ mv tema2 ../checker
 cd ../checker
 
 echo ""
+# test1
+# test2
+# test3
+# test4
+
+START_TEST1=$(date +%s)
 test1
+END_TEST1=$(date +%s)
+echo "Test1 took $((END_TEST1 - START_TEST1)) seconds"
+echo ""
+
+START_TEST2=$(date +%s)
 test2
+END_TEST2=$(date +%s)
+echo "Test2 took $((END_TEST2 - START_TEST2)) seconds"
+echo ""
+
+START_TEST3=$(date +%s)
 test3
+END_TEST3=$(date +%s)
+echo "Test3 took $((END_TEST3 - START_TEST3)) seconds"
+echo ""
+
+START_TEST4=$(date +%s)
 test4
+END_TEST4=$(date +%s)
+echo "Test4 took $((END_TEST4 - START_TEST4)) seconds"
+echo ""
+TOTAL_TIME=$(( (END_TEST1 - START_TEST1) + (END_TEST2 - START_TEST2) + (END_TEST3 - START_TEST3) + (END_TEST4 - START_TEST4) ))
+echo "Total time: $TOTAL_TIME seconds"
 
 make clean &> /dev/null
 
