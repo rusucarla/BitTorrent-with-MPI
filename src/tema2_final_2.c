@@ -282,9 +282,9 @@ void *download_thread_func(void *arg) {
         }
         for (int c = 0; c < n_chunks; c++) {
             MPI_Recv(wf->chunk_hashes[c], HASH_SIZE + 1, MPI_CHAR, TRACKER_RANK, MSG_SWARM_INFO, MPI_COMM_WORLD, &st);
-            pthread_mutex_lock(&ps->lockWanted);
+            // pthread_mutex_lock(&ps->lockWanted);
             wf->have_chunk[c] = 0;
-            pthread_mutex_unlock(&ps->lockWanted);
+            // pthread_mutex_unlock(&ps->lockWanted);
         }
         MPI_Recv(&wf->swarm_size, 1, MPI_INT, TRACKER_RANK, MSG_SWARM_INFO, MPI_COMM_WORLD, &st);
         for (int s = 0; s < wf->swarm_size; s++) {
@@ -338,7 +338,11 @@ void *download_thread_func(void *arg) {
                 // Get the chunk index from the shuffled array
                 int c = chunk_order[i];
                 // Check if we have the chunk so we don't request it again
-                if (!wf->have_chunk[c]) {
+                int have_it = 0;
+                pthread_mutex_lock(&ps->lockWanted);
+                have_it = wf->have_chunk[c];
+                pthread_mutex_unlock(&ps->lockWanted);
+                if (!have_it) {
                     // We contact all peers in the swarm to get the chunk
                     // Until we get it using the round robin approach to make
                     // sure we don't overload a peer
@@ -431,7 +435,8 @@ void *upload_thread_func(void *arg) {
         // Check if we have any messages
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &st);
         if (!flag) {
-            usleep(20000);
+            // sleep for 1ms
+            usleep(1000);
             continue;
         }
 
@@ -469,6 +474,7 @@ void *upload_thread_func(void *arg) {
                     }
                 }
             }
+            pthread_mutex_unlock(&ps->lockWanted);
             // now = get_time();
             // Send ACK/NACK to the client with a little struct
             // (I know in the receving function I used a buffer, but I wanted to
@@ -491,11 +497,10 @@ void *upload_thread_func(void *arg) {
                 nack.chunk_idx = rc.chunk_index;
                 MPI_Send(&nack, sizeof(nack), MPI_CHAR, src, MSG_SEND_NACK, MPI_COMM_WORLD);
             }
-            pthread_mutex_unlock(&ps->lockWanted);
         } else if (tag == MSG_STOP_ALL) {
             // We received the signal from the tracker to stop all uploads => close the upload thread
             MPI_Recv(NULL, 0, MPI_CHAR, src, MSG_STOP_ALL, MPI_COMM_WORLD, &st);
-            // printf("[Peer %d] STOP_ALL received from tracker -> closing upload.\n", rank);
+            printf("[Peer %d] STOP_ALL received from tracker -> closing upload.\n", rank);
             break;
         }
     }
@@ -603,7 +608,15 @@ void tracker(int numtasks, int rank) {
     while (1) {
         // Check for messages
         MPI_Status st;
-        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+        // MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+        int flag;
+        // Check if we have any messages
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &st);
+        if (!flag) {
+            // sleep for 1ms
+            usleep(1000);
+            continue;
+        }
 
         int src = st.MPI_SOURCE;
         int tag = st.MPI_TAG;
@@ -696,7 +709,7 @@ void tracker(int numtasks, int rank) {
             }
         }
     }
-    // printf("[%.4f] [Tracker] All peers have finished. Exiting.\n", get_time());
+    printf("[%.4f] [Tracker] All peers have finished. Exiting.\n", get_time());
 }
 
 void *download_thread_func(void *);
