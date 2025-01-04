@@ -500,7 +500,7 @@ void *upload_thread_func(void *arg) {
         } else if (tag == MSG_STOP_ALL) {
             // We received the signal from the tracker to stop all uploads => close the upload thread
             MPI_Recv(NULL, 0, MPI_CHAR, src, MSG_STOP_ALL, MPI_COMM_WORLD, &st);
-            printf("[Peer %d] STOP_ALL received from tracker -> closing upload.\n", rank);
+            // printf("[Peer %d] STOP_ALL received from tracker -> closing upload.\n", rank);
             break;
         }
     }
@@ -709,7 +709,7 @@ void tracker(int numtasks, int rank) {
             }
         }
     }
-    printf("[%.4f] [Tracker] All peers have finished. Exiting.\n", get_time());
+    // printf("[%.4f] [Tracker] All peers have finished. Exiting.\n", get_time());
 }
 
 void *download_thread_func(void *);
@@ -721,12 +721,28 @@ void peer(int numtasks, int rank) {
     ps->numtasks = numtasks;
     pthread_mutex_init(&ps->lockWanted, NULL);
 
-    pthread_t th_down, th_up;
-    pthread_create(&th_down, NULL, download_thread_func, (void *)ps);
-    pthread_create(&th_up, NULL, upload_thread_func, (void *)ps);
+    pthread_t download_thread;
+    pthread_t upload_thread;
 
-    pthread_join(th_down, NULL);
-    pthread_join(th_up, NULL);
+    int r = pthread_create(&download_thread, NULL, download_thread_func, (void *) ps);
+    if (r) {
+        exit(-1);
+    }
+
+    r = pthread_create(&upload_thread, NULL, upload_thread_func, (void *) ps);
+    if (r) {
+        exit(-1);
+    }
+
+    r = pthread_join(download_thread, NULL);
+    if (r) {
+        exit(-1);
+    }
+
+    r = pthread_join(upload_thread, NULL);
+    if (r) {
+        exit(-1);
+    }
 
     free(ps);
 }

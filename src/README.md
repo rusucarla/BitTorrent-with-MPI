@@ -146,7 +146,7 @@ clientul care doarme se poate folosi ulterior.
 
 ## Metode de sincronizare
 
-## Structura PeerState
+### Structura PeerState
 
 Pentru a putea partaja date intre cele doua thread-uri, am folosit o structura
 care detinea informati despre starea peer-ului => PeerState :).

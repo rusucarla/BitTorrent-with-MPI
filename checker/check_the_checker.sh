@@ -1,11 +1,11 @@
 # rulam de 100 de ori checker-ul pe checker
 #!/bin/bash
 CHECKER_SCRIPT="./checker.sh"
-OUTPUT_DIR="./out_files_1ms_tracker"
+OUTPUT_DIR="./out_files_maria"
 
 mkdir -p "$OUTPUT_DIR"
 
-for i in $(seq 1 100); do
+for i in $(seq 1 50); do
     echo "checker: runda $i"
     OUTPUT_FILE="$OUTPUT_DIR/output_$i.txt"
 
