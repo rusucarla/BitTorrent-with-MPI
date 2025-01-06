@@ -1,7 +1,7 @@
 # rulam de 100 de ori checker-ul pe checker
 #!/bin/bash
 CHECKER_SCRIPT="./checker.sh"
-OUTPUT_DIR="./out_files_maria"
+OUTPUT_DIR="./out_files_2"
 
 mkdir -p "$OUTPUT_DIR"
 

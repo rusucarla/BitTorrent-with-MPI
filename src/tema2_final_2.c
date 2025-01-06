@@ -280,12 +280,14 @@ void *download_thread_func(void *arg) {
             wf->swarm_size = 0;
             continue;
         }
+        pthread_mutex_lock(&ps->lockWanted);
         for (int c = 0; c < n_chunks; c++) {
             MPI_Recv(wf->chunk_hashes[c], HASH_SIZE + 1, MPI_CHAR, TRACKER_RANK, MSG_SWARM_INFO, MPI_COMM_WORLD, &st);
-            // pthread_mutex_lock(&ps->lockWanted);
+            
             wf->have_chunk[c] = 0;
-            // pthread_mutex_unlock(&ps->lockWanted);
+            
         }
+        pthread_mutex_unlock(&ps->lockWanted);
         MPI_Recv(&wf->swarm_size, 1, MPI_INT, TRACKER_RANK, MSG_SWARM_INFO, MPI_COMM_WORLD, &st);
         for (int s = 0; s < wf->swarm_size; s++) {
             MPI_Recv(&wf->swarm_members[s], 1, MPI_INT, TRACKER_RANK, MSG_SWARM_INFO, MPI_COMM_WORLD, &st);
@@ -474,7 +476,6 @@ void *upload_thread_func(void *arg) {
                     }
                 }
             }
-            pthread_mutex_unlock(&ps->lockWanted);
             // now = get_time();
             // Send ACK/NACK to the client with a little struct
             // (I know in the receving function I used a buffer, but I wanted to
@@ -497,6 +498,7 @@ void *upload_thread_func(void *arg) {
                 nack.chunk_idx = rc.chunk_index;
                 MPI_Send(&nack, sizeof(nack), MPI_CHAR, src, MSG_SEND_NACK, MPI_COMM_WORLD);
             }
+            pthread_mutex_unlock(&ps->lockWanted);
         } else if (tag == MSG_STOP_ALL) {
             // We received the signal from the tracker to stop all uploads => close the upload thread
             MPI_Recv(NULL, 0, MPI_CHAR, src, MSG_STOP_ALL, MPI_COMM_WORLD, &st);

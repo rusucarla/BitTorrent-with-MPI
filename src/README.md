@@ -39,8 +39,7 @@ flowchart TB
     A15 --> A7
 ```
 
-- Upload (important de mentionat ca dau unlock inainte de a trimite mesajul
-  inapoi dar nu arata bine pe diagrama)
+- Upload
 
 ```mermaid
 flowchart TB
@@ -160,6 +159,8 @@ Astfel ca:
 
 - Atunci cand `upload_thread` verifica daca are sau nu acel chunk, asteptam mai
   intai sa avem mutex-ul
+- Cand primesc datele de la tracker despre `WantedFile` le primesc intr-un mod
+  blocant pentru a asigura corectitudinea
 - In bucla din `download_thread` verific valoarea din array folosind mutex-ul
   pentru a sti la acel moment ca sigur nu este scris.
 - Cand primesc raspunsul de la peer, scriu in mod blocant
